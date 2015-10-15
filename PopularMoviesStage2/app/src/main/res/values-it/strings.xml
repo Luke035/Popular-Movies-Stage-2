@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="action_settings">Impostazioni</string>
+    <string name="pref_sorting_label">Preferenze di ordinamento</string>
+    <string name="pref_sorting_pop_label">Popolarità</string>
+    <string name="pref_sorting_vote_label">Più votato</string>
+    <string name="overview_title">Trama</string>
+    <string name="release_year">Anno di rilascio</string>
+    <string name="user_rating">Voto degli utenti</string>
+    <string name="empty_poster_string">Errore: connessione assente</string>
+</resources>
