@@ -151,4 +151,46 @@ public class TestDB extends AndroidTestCase {
 
     }
 
+    public void testDBQuery(){
+        MovieDBHelper dbHelper = new MovieDBHelper(mContext);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+
+        //Re-insert values
+        ContentValues posterValues = createPosterValues();
+        long rowId = db.insert(MovieContract.PosterEntry.TABLE_NAME, null, posterValues);
+
+        //RowID must be greater than -1
+        assertTrue("ERROR: poster values not correctly inserted", rowId != -1);
+
+        ContentValues trailerValues = createTrailerValues();
+        long trailerRowId = db.insert(MovieContract.TrailerEntry.TABLE_NAME, null, trailerValues);
+
+        assertTrue("ERROR: trailer values not correctly inserted", trailerRowId != -1);
+
+
+        //Query the db
+        String [] desired_columns = {MovieContract.PosterEntry.COL_TITLE, MovieContract.PosterEntry.COL_DESCRIPTION};
+        Cursor posterCursor = db.query(MovieContract.PosterEntry.TABLE_NAME,
+                desired_columns,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+        );
+
+        while(posterCursor.moveToNext()){
+            int index_col_title = posterCursor.getColumnIndex(MovieContract.PosterEntry.COL_TITLE);
+            assertEquals("ERROR: different poster titles",posterCursor.getString(index_col_title), posterValues.getAsString(MovieContract.PosterEntry.COL_TITLE));
+
+            int index_col_description = posterCursor.getColumnIndex(MovieContract.PosterEntry.COL_DESCRIPTION);
+            assertEquals("ERROR: different poster descriptions", posterCursor.getString(index_col_description), posterValues.getAsString(MovieContract.PosterEntry.COL_DESCRIPTION));
+        }
+
+
+
+    }
+
 }
