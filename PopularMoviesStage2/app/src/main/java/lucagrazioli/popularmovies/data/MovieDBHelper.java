@@ -33,10 +33,32 @@ public class MovieDBHelper extends SQLiteOpenHelper {
                 ");";
 
         db.execSQL(SQL_CREATE_POSTER_TABLE);
+
+        final String SQL_CREATE_TRAILER_TABLE = "CREATE TABLE "+MovieContract.TrailerEntry.TABLE_NAME+ "("+
+                MovieContract.TrailerEntry._ID+" INTEGER PRIMARY KEY AUTOINCREMENT, "+
+
+                MovieContract.TrailerEntry.COL_NAME+" TEXT NOT NULL, "+
+                MovieContract.TrailerEntry.COL_SITE+" TEXT NOT NULL, "+
+                MovieContract.TrailerEntry.COL_TRAILER_KEY+" TEXT NOT NULL, "+
+                MovieContract.TrailerEntry.COL_SIZE+" TEXT NOT NULL, "+
+                MovieContract.TrailerEntry.COL_TYPE+" TEXT NOT NULL, "+
+                MovieContract.TrailerEntry.COL_MOVIE_ID+" INTEGER NOT NULL, "+
+
+                "FOREIGN KEY ("+ MovieContract.TrailerEntry.COL_MOVIE_ID+") REFERENCES "+
+                MovieContract.PosterEntry.TABLE_NAME+" ("+ MovieContract.PosterEntry._ID+")"
+
+                +");";
+
+        db.execSQL(SQL_CREATE_TRAILER_TABLE);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        //Drop already existing tables
+        db.execSQL("DROP TABLE IF EXISTS "+ MovieContract.PosterEntry.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS "+ MovieContract.TrailerEntry.TABLE_NAME);
 
+        //Recreate the db
+        onCreate(db);
     }
 }

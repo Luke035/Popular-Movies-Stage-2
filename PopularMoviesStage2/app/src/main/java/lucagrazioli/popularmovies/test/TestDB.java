@@ -1,5 +1,7 @@
 package lucagrazioli.popularmovies.test;
 
+import android.content.ContentValues;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.test.AndroidTestCase;
 
@@ -29,60 +31,124 @@ public class TestDB extends AndroidTestCase {
     }
 
     public void testCreateDb() throws Throwable {
-        // build a HashSet of all of the table names we wish to look for
-        // Note that there will be another table in the DB that stores the
-        // Android metadata (db version information)
-        final HashSet<String> tableNameHashSet = new HashSet<String>();
-        tableNameHashSet.add(MovieContract.PosterEntry.TABLE_NAME);
-        //
         mContext.deleteDatabase(MovieDBHelper.DB_NAME);
 
+
+        //For both DB tables
         SQLiteDatabase db = new MovieDBHelper(this.mContext).getWritableDatabase();
         assertEquals(true, db.isOpen());
 
-        /*
-        // have we created the tables we want?
-        Cursor c = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", null);
-        //
-        assertTrue("Error: This means that the database has not been created correctly",
-                c.moveToFirst());
 
-        // verify that the tables have been created
-        do {
-            tableNameHashSet.remove(c.getString(0));
-        } while( c.moveToNext() );
-        //
-        // if this fails, it means that your database doesn't contain both the location entry
-        // and weather entry tables
-        assertTrue("Error: Your database was created without both the location entry and weather entry tables",
-                tableNameHashSet.isEmpty());
-        //
-        // now, do our tables contain the correct columns?
-        c = db.rawQuery("PRAGMA table_info(" + WeatherContract.LocationEntry.TABLE_NAME + ")",
+        Cursor posterCursor = db.rawQuery("PRAGMA table_info(" + MovieContract.PosterEntry.TABLE_NAME + ")",
                 null);
-        //
-        assertTrue("Error: This means that we were unable to query the database for table information.",
-                c.moveToFirst());
-        //
+
         // Build a HashSet of all of the column names we want to look for
-        final HashSet<String> locationColumnHashSet = new HashSet<String>();
-        locationColumnHashSet.add(WeatherContract.LocationEntry._ID);
-        locationColumnHashSet.add(WeatherContract.LocationEntry.COLUMN_CITY_NAME);
-        locationColumnHashSet.add(WeatherContract.LocationEntry.COLUMN_COORD_LAT);
-        locationColumnHashSet.add(WeatherContract.LocationEntry.COLUMN_COORD_LONG);
-        locationColumnHashSet.add(WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING);
-        //
-        int columnNameIndex = c.getColumnIndex("name");
+        final HashSet<String> posterColumnsHashSet = new HashSet<String>();
+        posterColumnsHashSet.add(MovieContract.PosterEntry._ID);
+        posterColumnsHashSet.add(MovieContract.PosterEntry.COL_TITLE);
+        posterColumnsHashSet.add(MovieContract.PosterEntry.COL_DESCRIPTION);
+        posterColumnsHashSet.add(MovieContract.PosterEntry.COL_DURATION);
+        posterColumnsHashSet.add(MovieContract.PosterEntry.COL_IMAGE_URL);
+        posterColumnsHashSet.add(MovieContract.PosterEntry.COL_RELEASE_DATE);
+        posterColumnsHashSet.add(MovieContract.PosterEntry.COL_VOTE_AVERAGE);
+
+        posterCursor.moveToNext(); //Necessary for start iterating the cursor
+
+        assertEquals(6, posterCursor.getColumnCount());
+
+        int columnNameIndex = posterCursor.getColumnIndex("name");
         do {
-            String columnName = c.getString(columnNameIndex);
-            locationColumnHashSet.remove(columnName);
-        } while(c.moveToNext());
+            String columnName = posterCursor.getString(columnNameIndex);
+            posterColumnsHashSet.remove(columnName);
+        } while(posterCursor.moveToNext());
         //
         // if this fails, it means that your database doesn't contain all of the required location
         // entry columns
         assertTrue("Error: The database doesn't contain all of the required location entry columns",
-                locationColumnHashSet.isEmpty()); */
+                posterColumnsHashSet.isEmpty());
+
+        Cursor trailerCursor = db.rawQuery("PRAGMA table_info(" + MovieContract.TrailerEntry.TABLE_NAME + ")",
+                null);
+
+        // Build a HashSet of all of the column names we want to look for
+        final HashSet<String> trailerColumnHashSet = new HashSet<String>();
+        trailerColumnHashSet.add(MovieContract.TrailerEntry._ID);
+        trailerColumnHashSet.add(MovieContract.TrailerEntry.COL_NAME);
+        trailerColumnHashSet.add(MovieContract.TrailerEntry.COL_SITE);
+        trailerColumnHashSet.add(MovieContract.TrailerEntry.COL_TRAILER_KEY);
+        trailerColumnHashSet.add(MovieContract.TrailerEntry.COL_SIZE);
+        trailerColumnHashSet.add(MovieContract.TrailerEntry.COL_TYPE);
+        trailerColumnHashSet.add(MovieContract.TrailerEntry.COL_MOVIE_ID);
+
+        trailerCursor.moveToNext(); //Necessary for start iterating the cursor
+
+        assertEquals(6, trailerCursor.getColumnCount());
+
+        int trailerColumnNameIndex = trailerCursor.getColumnIndex("name");
+        do {
+            String columnName = trailerCursor.getString(trailerColumnNameIndex);
+            trailerColumnHashSet.remove(columnName);
+        } while(trailerCursor.moveToNext());
+        //
+        // if this fails, it means that your database doesn't contain all of the required location
+        // entry columns
+        assertTrue("Error: The database doesn't contain all of the required location entry columns",
+                trailerColumnHashSet.isEmpty());
+
         db.close();
    }
+
+    //    static ContentValues createNorthPoleLocationValues() {
+//        // Create a new map of values, where column names are the keys
+//        ContentValues testValues = new ContentValues();
+//        testValues.put(WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING, TEST_LOCATION);
+//        testValues.put(WeatherContract.LocationEntry.COLUMN_CITY_NAME, "North Pole");
+//        testValues.put(WeatherContract.LocationEntry.COLUMN_COORD_LAT, 64.7488);
+//        testValues.put(WeatherContract.LocationEntry.COLUMN_COORD_LONG, -147.353);
+//
+//        return testValues;
+//    }
+
+    static ContentValues createPosterValues(){
+        ContentValues testValues = new ContentValues();
+
+        testValues.put(MovieContract.PosterEntry.COL_TITLE, "Men In Black 3");
+        testValues.put(MovieContract.PosterEntry.COL_DESCRIPTION, "Last episode of MIB");
+        testValues.put(MovieContract.PosterEntry.COL_DURATION, 120);
+        testValues.put(MovieContract.PosterEntry.COL_IMAGE_URL, "http://");
+        testValues.put(MovieContract.PosterEntry.COL_RELEASE_DATE, "2013");
+        testValues.put(MovieContract.PosterEntry.COL_VOTE_AVERAGE, 8.5);
+
+        return testValues;
+    }
+
+    static ContentValues createTrailerValues(){
+        ContentValues testValues = new ContentValues();
+
+        testValues.put(MovieContract.TrailerEntry.COL_NAME, "Trailer 3");
+        testValues.put(MovieContract.TrailerEntry.COL_SITE, "You Tube");
+        testValues.put(MovieContract.TrailerEntry.COL_TRAILER_KEY, "dlsjfhlsdfhdv34");
+        testValues.put(MovieContract.TrailerEntry.COL_SIZE, "720");
+        testValues.put(MovieContract.TrailerEntry.COL_TYPE, "teaser");
+        testValues.put(MovieContract.TrailerEntry.COL_MOVIE_ID, 1);
+        return testValues;
+    }
+
+    public void testInsertValues(){
+        MovieDBHelper dbHelper = new MovieDBHelper(mContext);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        long rowId = db.insert(MovieContract.PosterEntry.TABLE_NAME, null, createPosterValues());
+
+        //RowID must be greater than -1
+        assertTrue("ERROR: poster values not correctly inserted", rowId != -1);
+
+        long trailerRowId = db.insert(MovieContract.TrailerEntry.TABLE_NAME, null, createTrailerValues());
+
+        assertTrue("ERROR: trailer values not correctly inserted", trailerRowId != -1);
+
+        db.close();
+
+    }
 
 }
