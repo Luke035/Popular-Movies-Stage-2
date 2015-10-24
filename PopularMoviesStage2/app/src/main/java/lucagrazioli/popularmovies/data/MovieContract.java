@@ -35,6 +35,8 @@ public class MovieContract {
         public static final String COL_DESCRIPTION = "description";
         public static final String COL_IMAGE_URL = "image_url";
         public static final String COL_VOTE_AVERAGE = "vote_average";
+        public static final String COL_POPULARITY = "popularity";
+        public static final String COL_VOTE_COUNT = "vote_count";
 
         /*
         URI contructur returning the URI for a specific poster entry

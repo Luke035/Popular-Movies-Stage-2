@@ -19,6 +19,8 @@ public class MovieProvider extends ContentProvider {
     public static final int POSTER_WITH_SORTING_AND_MIN_VOTES = 102;
     public static final int TRAILER = 200;
 
+    private MovieDBHelper mMovieDbHelper;
+
     public static UriMatcher buildUriMatcher(){
 
         final UriMatcher matcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -42,19 +44,58 @@ public class MovieProvider extends ContentProvider {
 
     @Override
     public boolean onCreate() {
-        return false;
+        mMovieDbHelper = new MovieDBHelper(getContext());
+        return true;
     }
 
     @Nullable
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-        return null;
+        int match = sUriMatcher.match(uri);
+
+        Cursor cursor = null;
+
+        switch(match){
+            case POSTER:{ //TODO
+
+            }break;
+
+            case POSTER_WITH_SORTING:{
+                //TODO
+            }break;
+
+            case POSTER_WITH_SORTING_AND_MIN_VOTES:{
+                //TODO
+            }break;
+
+            case TRAILER:{
+                //TODO
+            }break;
+
+            default:new UnsupportedOperationException("Unknown URI: "+uri);
+        }
+
+        cursor.setNotificationUri(getContext().getContentResolver(), uri);
+        return cursor;
     }
 
     @Nullable
     @Override
     public String getType(Uri uri) {
-        return null;
+        //Matching the uri
+        int match = sUriMatcher.match(uri);
+
+        //Switch-case on the matched variable
+        switch(match){
+            case POSTER: return MovieContract.PosterEntry.CONTENT_TYPE;
+            case POSTER_WITH_SORTING: return MovieContract.PosterEntry.CONTENT_TYPE;
+            case POSTER_WITH_SORTING_AND_MIN_VOTES: return MovieContract.PosterEntry.CONTENT_TYPE;
+            case TRAILER: return MovieContract.TrailerEntry.CONTENT_TYPE;
+
+            default: {
+                throw new UnsupportedOperationException("Unknown URI: "+uri);
+            }
+        }
     }
 
     @Nullable

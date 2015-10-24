@@ -39,8 +39,10 @@ public class TestDB extends AndroidTestCase {
         assertEquals(true, db.isOpen());
 
 
-        Cursor posterCursor = db.rawQuery("PRAGMA table_info(" + MovieContract.PosterEntry.TABLE_NAME + ")",
-                null);
+        //Cursor posterCursor = db.rawQuery("PRAGMA table_info(" + MovieContract.PosterEntry.TABLE_NAME + ")",
+               // null);
+
+        Cursor posterCursor = db.rawQuery("SELECT * FROM "+ MovieContract.PosterEntry.TABLE_NAME,null);
 
         // Build a HashSet of all of the column names we want to look for
         final HashSet<String> posterColumnsHashSet = new HashSet<String>();
@@ -51,10 +53,16 @@ public class TestDB extends AndroidTestCase {
         posterColumnsHashSet.add(MovieContract.PosterEntry.COL_IMAGE_URL);
         posterColumnsHashSet.add(MovieContract.PosterEntry.COL_RELEASE_DATE);
         posterColumnsHashSet.add(MovieContract.PosterEntry.COL_VOTE_AVERAGE);
+        posterColumnsHashSet.add(MovieContract.PosterEntry.COL_POPULARITY);
+        posterColumnsHashSet.add(MovieContract.PosterEntry.COL_VOTE_COUNT);
 
         posterCursor.moveToNext(); //Necessary for start iterating the cursor
 
-        assertEquals(6, posterCursor.getColumnCount());
+        assertEquals(9, posterCursor.getColumnCount());
+
+        posterCursor = db.rawQuery("PRAGMA table_info(" + MovieContract.PosterEntry.TABLE_NAME + ")",
+                 null);
+        posterCursor.moveToNext();
 
         int columnNameIndex = posterCursor.getColumnIndex("name");
         do {
@@ -118,6 +126,8 @@ public class TestDB extends AndroidTestCase {
         testValues.put(MovieContract.PosterEntry.COL_IMAGE_URL, "http://");
         testValues.put(MovieContract.PosterEntry.COL_RELEASE_DATE, "2013");
         testValues.put(MovieContract.PosterEntry.COL_VOTE_AVERAGE, 8.5);
+        testValues.put(MovieContract.PosterEntry.COL_POPULARITY, 34.75);
+        testValues.put(MovieContract.PosterEntry.COL_VOTE_COUNT, 135);
 
         return testValues;
     }
