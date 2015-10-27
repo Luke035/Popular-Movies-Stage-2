@@ -4,6 +4,7 @@ import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.support.annotation.Nullable;
 
@@ -42,10 +43,94 @@ public class MovieProvider extends ContentProvider {
         return matcher;
     }
 
+    private static final SQLiteQueryBuilder sPosterQueryBuilder;
+
+    static {
+        sPosterQueryBuilder = new SQLiteQueryBuilder();
+
+        //This is the simple poster query builder, without trailer informations
+        sPosterQueryBuilder.setTables(MovieContract.PosterEntry.TABLE_NAME);
+    }
+
+    private static final SQLiteQueryBuilder sPosterAndTrailerQueryBuilder;
+
+    static{
+        sPosterAndTrailerQueryBuilder = new SQLiteQueryBuilder();
+
+        //This query builder must perform the join between the two tables.
+        //Remember: for each trailer only one film is associated, but fora a single
+        //film multiple trailers can be bounded
+        sPosterAndTrailerQueryBuilder.setTables(
+                MovieContract.TrailerEntry.TABLE_NAME+" INNER JOIN "+
+                        MovieContract.PosterEntry.TABLE_NAME+
+                        " ON "+ MovieContract.TrailerEntry.TABLE_NAME+"" +
+                        "."+ MovieContract.TrailerEntry.COL_MOVIE_ID+" = "+
+                        MovieContract.PosterEntry.TABLE_NAME+"."+ MovieContract.PosterEntry._ID
+        );
+    }
+
+
     @Override
     public boolean onCreate() {
         mMovieDbHelper = new MovieDBHelper(getContext());
         return true;
+    }
+
+
+    //vote_count >= ?
+    private static final String sMinVotesSelection = MovieContract.PosterEntry.TABLE_NAME+
+            "."+ MovieContract.PosterEntry.COL_VOTE_COUNT+" = ?";
+
+    //trailer.movie = ?
+    private static final String sTrailerSelection = MovieContract.TrailerEntry.TABLE_NAME+
+            "."+ MovieContract.TrailerEntry.COL_MOVIE_ID+" = ?";
+
+    //No specific selection must be applied
+    private Cursor getPosters(
+            Uri uri, String [] projection, String sortOrder){
+
+        //String posterSortOrder = MovieContract.PosterEntry.getSortingOrder(uri);
+
+        return sPosterQueryBuilder.query(
+                mMovieDbHelper.getReadableDatabase(),
+                projection,
+                null, //no selections
+                null,
+                null,
+                null,
+                sortOrder
+        );
+    }
+
+    private Cursor getPostersWithMinVotes(
+            Uri uri, String [] projection, String sortOrder){
+        int minVotes = MovieContract.PosterEntry.getVoteCount(uri);
+
+        return sPosterQueryBuilder.query(
+                mMovieDbHelper.getReadableDatabase(),
+                projection,
+                sMinVotesSelection,
+                new String[]{Integer.toString(minVotes)},
+                null,
+                null,
+                sortOrder
+        );
+    }
+
+    private Cursor getTrailersFromMovie(
+            Uri uri, String[] projection, String sortOrder){
+
+        long id = MovieContract.TrailerEntry.getMovieId(uri);
+
+        return  sPosterAndTrailerQueryBuilder.query(
+          mMovieDbHelper.getReadableDatabase(),
+                projection,
+                sTrailerSelection,
+                new String[]{Long.toString(id)},
+                null,
+                null,
+                sortOrder
+        );
     }
 
     @Nullable
@@ -56,20 +141,20 @@ public class MovieProvider extends ContentProvider {
         Cursor cursor = null;
 
         switch(match){
-            case POSTER:{ //TODO
-
+            case POSTER:{
+                cursor = getPosters(uri, projection, sortOrder);
             }break;
 
             case POSTER_WITH_SORTING:{
-                //TODO
+                cursor = getPosters(uri, projection, sortOrder);
             }break;
 
             case POSTER_WITH_SORTING_AND_MIN_VOTES:{
-                //TODO
+                cursor = getPostersWithMinVotes(uri, projection, sortOrder);
             }break;
 
             case TRAILER:{
-                //TODO
+                cursor = getTrailersFromMovie(uri,projection,sortOrder);
             }break;
 
             default:new UnsupportedOperationException("Unknown URI: "+uri);

@@ -39,7 +39,7 @@ public class MovieContract {
         public static final String COL_VOTE_COUNT = "vote_count";
 
         /*
-        URI contructur returning the URI for a specific poster entry
+        URI constructor returning the URI for a specific poster entry
          */
         public static Uri buildPosterUri(long id){
             return ContentUris.withAppendedId(CONTENT_URI, id);
@@ -52,6 +52,14 @@ public class MovieContract {
 
         public static Uri buildPosterWithSortingAndMinumVotes(String sort_order, String min_votes){
             return CONTENT_URI.buildUpon().appendPath(sort_order).appendPath(min_votes).build();
+        }
+
+        public static String getSortingOrder(Uri uri){
+            return uri.getPathSegments().get(1);
+        }
+
+        public static int getVoteCount(Uri uri){
+            return Integer.parseInt(uri.getPathSegments().get(2));
         }
     }
 
@@ -78,6 +86,15 @@ public class MovieContract {
 
         public static Uri buildTrailerUri(long id){
             return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+
+        public static Uri buildTrailerUriWithMoviId(long id){
+            return CONTENT_URI.buildUpon().appendQueryParameter(COL_MOVIE_ID, Long.toString(id))
+                    .build();
+        }
+
+        public static long getMovieId(Uri uri){
+            return Long.parseLong(uri.getQueryParameter(COL_MOVIE_ID));
         }
     }
 }

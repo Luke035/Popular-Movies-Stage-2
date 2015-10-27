@@ -1,11 +1,15 @@
 package lucagrazioli.popularmovies.test;
 
 import android.content.ComponentName;
+import android.content.ContentValues;
 import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.test.AndroidTestCase;
 
 import lucagrazioli.popularmovies.data.MovieContract;
+import lucagrazioli.popularmovies.data.MovieDBHelper;
 import lucagrazioli.popularmovies.data.MovieProvider;
 
 /**
@@ -33,5 +37,44 @@ public class TestProvider extends AndroidTestCase {
             assertTrue("Error: MovieProvider not registered at " + mContext.getPackageName(),
                     false);
         }
+    }
+
+
+    public void testSimpleQuery(){
+        MovieDBHelper dbHelper = new MovieDBHelper(mContext);
+        SQLiteDatabase sqLiteDatabase = dbHelper.getWritableDatabase();
+
+        ContentValues posterValues = TestDB.createPosterValues();
+
+        long rowId = sqLiteDatabase.insert(MovieContract.PosterEntry.TABLE_NAME, null, posterValues);
+
+        //RowID must be greater than -1
+        assertTrue("ERROR: poster values not correctly inserted", rowId != -1);
+
+
+        Cursor movieCursor = mContext.getContentResolver().query(
+                MovieContract.PosterEntry.buildPosterWithSortingAndMinumVotes("","100"),
+                null,
+                null,
+                null,
+                null
+        );
+
+
+        assertTrue("Poster values are not as expected", validateCursor(posterValues, movieCursor));
+
+    }
+
+    public boolean validateCursor(ContentValues testValues, Cursor returnedCursor){
+        returnedCursor.moveToNext();
+
+        int title_index = returnedCursor.getColumnIndex(MovieContract.PosterEntry.COL_TITLE);
+
+        if(!testValues.getAsString(MovieContract.PosterEntry.COL_TITLE).equals(
+                returnedCursor.getString(title_index))){
+            return false;
+        }
+
+        return true;
     }
 }
