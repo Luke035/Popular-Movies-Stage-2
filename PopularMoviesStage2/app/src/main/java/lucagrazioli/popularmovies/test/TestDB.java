@@ -58,7 +58,7 @@ public class TestDB extends AndroidTestCase {
 
         posterCursor.moveToNext(); //Necessary for start iterating the cursor
 
-        assertEquals(9, posterCursor.getColumnCount());
+        assertEquals(10, posterCursor.getColumnCount());
 
         posterCursor = db.rawQuery("PRAGMA table_info(" + MovieContract.PosterEntry.TABLE_NAME + ")",
                  null);
@@ -120,16 +120,47 @@ public class TestDB extends AndroidTestCase {
     static ContentValues createPosterValues(){
         ContentValues testValues = new ContentValues();
 
-        testValues.put(MovieContract.PosterEntry.COL_TITLE, "Men In Black 3");
-        testValues.put(MovieContract.PosterEntry.COL_DESCRIPTION, "Last episode of MIB");
+        testValues.put(MovieContract.PosterEntry.COL_MOVIE_ID, "66745565");
+        testValues.put(MovieContract.PosterEntry.COL_TITLE, "Minions");
+        testValues.put(MovieContract.PosterEntry.COL_DESCRIPTION, "ok!");
         testValues.put(MovieContract.PosterEntry.COL_DURATION, 120);
         testValues.put(MovieContract.PosterEntry.COL_IMAGE_URL, "http://");
-        testValues.put(MovieContract.PosterEntry.COL_RELEASE_DATE, "2013");
+        testValues.put(MovieContract.PosterEntry.COL_RELEASE_DATE, "2015");
         testValues.put(MovieContract.PosterEntry.COL_VOTE_AVERAGE, 8.5);
         testValues.put(MovieContract.PosterEntry.COL_POPULARITY, 34.75);
         testValues.put(MovieContract.PosterEntry.COL_VOTE_COUNT, 135);
 
         return testValues;
+    }
+
+    static ContentValues[] createMultiplePosterValues(){
+        ContentValues testValues1 = new ContentValues();
+
+        testValues1.put(MovieContract.PosterEntry.COL_MOVIE_ID, "38482173");
+        testValues1.put(MovieContract.PosterEntry.COL_TITLE, "Men In Black 3");
+        testValues1.put(MovieContract.PosterEntry.COL_DESCRIPTION, "Last episode of MIB");
+        testValues1.put(MovieContract.PosterEntry.COL_DURATION, 120);
+        testValues1.put(MovieContract.PosterEntry.COL_IMAGE_URL, "http://");
+        testValues1.put(MovieContract.PosterEntry.COL_RELEASE_DATE, "2013");
+        testValues1.put(MovieContract.PosterEntry.COL_VOTE_AVERAGE, 8.5);
+        testValues1.put(MovieContract.PosterEntry.COL_POPULARITY, 34.75);
+        testValues1.put(MovieContract.PosterEntry.COL_VOTE_COUNT, 135);
+
+        ContentValues testValues2 = new ContentValues();
+
+        testValues2.put(MovieContract.PosterEntry.COL_MOVIE_ID, "34555465");
+        testValues2.put(MovieContract.PosterEntry.COL_TITLE, "The martian");
+        testValues2.put(MovieContract.PosterEntry.COL_DESCRIPTION, "Matt Damon Superstar");
+        testValues2.put(MovieContract.PosterEntry.COL_DURATION, 120);
+        testValues2.put(MovieContract.PosterEntry.COL_IMAGE_URL, "http://");
+        testValues2.put(MovieContract.PosterEntry.COL_RELEASE_DATE, "2015");
+        testValues2.put(MovieContract.PosterEntry.COL_VOTE_AVERAGE, 8.5);
+        testValues2.put(MovieContract.PosterEntry.COL_POPULARITY, 34.75);
+        testValues2.put(MovieContract.PosterEntry.COL_VOTE_COUNT, 135);
+
+        ContentValues [] values = {testValues1, testValues2};
+
+        return values;
     }
 
     static ContentValues createTrailerValues(){

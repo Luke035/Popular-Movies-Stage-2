@@ -1,35 +1,23 @@
 package lucagrazioli.popularmovies;
 
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
+import android.database.Cursor;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.GridView;
-import android.widget.Toast;
 
-import org.json.JSONException;
+import lucagrazioli.popularmovies.data.MovieContract;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Serializable;
-import java.net.HttpURLConnection;
-import java.net.ProtocolException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-
-public class MainActivityFragment extends Fragment {
+public class MainActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
 
     private PostersAdapter mPosterAdapter;
     private GridView postersGrid;
@@ -37,18 +25,56 @@ public class MainActivityFragment extends Fragment {
     private static final int portrait_columns = 3;
     private String last_sorting_pref;
 
+    private static final int POSTER_LOADER = 0;
+    private static final String LOG_TAG = "Provider";
+
+    public static final String [] POSTER_COLUMNS = {
+            MovieContract.PosterEntry.TABLE_NAME+"."+ MovieContract.PosterEntry._ID,
+            MovieContract.PosterEntry.COL_TITLE,
+            MovieContract.PosterEntry.COL_RELEASE_DATE,
+            MovieContract.PosterEntry.COL_DURATION,
+            MovieContract.PosterEntry.COL_DESCRIPTION,
+            MovieContract.PosterEntry.COL_IMAGE_URL,
+            MovieContract.PosterEntry.COL_VOTE_AVERAGE,
+            MovieContract.PosterEntry.COL_POPULARITY,
+            MovieContract.PosterEntry.COL_VOTE_COUNT
+    };
+
     public MainActivityFragment() {
+    }
+
+    private String normalizeSortingOrder(){
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String sorting = prefs.getString(getString(R.string.pref_sorting_key), getString(R.string.pref_sorting_pop_key));
+
+        String sortOrder = "";
+        if(sorting.equals(getString(R.string.pref_sorting_pop_key))){
+            sortOrder = MovieContract.PosterEntry.COL_POPULARITY+" DESC";
+        }else{
+            sortOrder = MovieContract.PosterEntry.COL_VOTE_COUNT+" DESC";
+        }
+
+        return sortOrder;
     }
 
     @Override
     public View onCreateView(final LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        Uri posterUri = MovieContract.PosterEntry.buildPosterWithSorting("");
+        Cursor cursor = getActivity().getContentResolver().query(
+                posterUri, null, null, null, normalizeSortingOrder()
+        );
+
+        Log.d(LOG_TAG,"Number of elements retrieved: "+cursor.getCount());
+
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        mPosterAdapter = null;
+        mPosterAdapter = new PostersAdapter(getActivity(), cursor, 0);
 
         postersGrid = (GridView) rootView.findViewById(R.id.posters_grid);
-        postersGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        postersGrid.setAdapter(mPosterAdapter);
+        /*postersGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Poster selectedPoster = (Poster) mPosterAdapter.getItem(position);
@@ -58,13 +84,13 @@ public class MainActivityFragment extends Fragment {
 
                 startActivity(intent);
             }
-        });
+        });*/
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        last_sorting_pref = prefs.getString(getString(R.string.pref_sorting_key),getString(R.string.pref_sorting_pop_key));
+        //SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        //last_sorting_pref = prefs.getString(getString(R.string.pref_sorting_key),getString(R.string.pref_sorting_pop_key));
 
-        if(savedInstanceState==null || !savedInstanceState.containsKey("posters")){
-            updateMovies();
+        /*if(savedInstanceState==null || !savedInstanceState.containsKey("posters")){
+            //updateMovies();
         }else{
 
             Poster [] posters = (Poster[]) savedInstanceState.getParcelableArray("posters");
@@ -76,7 +102,7 @@ public class MainActivityFragment extends Fragment {
                 posterList.add(p);
             }
 
-            mPosterAdapter = new PostersAdapter(getActivity(),posterList);
+
             postersGrid.setAdapter(mPosterAdapter);
             if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
                 postersGrid.setNumColumns(landscape_columns);
@@ -85,9 +111,16 @@ public class MainActivityFragment extends Fragment {
                 postersGrid.setNumColumns(portrait_columns);
             }
             mPosterAdapter.notifyDataSetChanged();
-        }
+        }*/
 
         return rootView;
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        getLoaderManager().initLoader(POSTER_LOADER, null, this);
+        updateMovies();
+        super.onActivityCreated(savedInstanceState);
     }
 
     @Override
@@ -129,11 +162,47 @@ public class MainActivityFragment extends Fragment {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String sorting = prefs.getString(getString(R.string.pref_sorting_key),getString(R.string.pref_sorting_pop_key));
 
-        new RetrieveMoviesTask().execute(sorting);
+        //new RetrieveMoviesTask().execute(sorting);
+        new RetrieveMoviesTask(mPosterAdapter, getActivity(), postersGrid, landscape_columns, portrait_columns).execute(sorting);
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String sorting = prefs.getString(getString(R.string.pref_sorting_key), getString(R.string.pref_sorting_pop_key));
+
+        String sortOrder = "";
+        if(sorting.equals(getString(R.string.pref_sorting_pop_key))){
+            sortOrder = MovieContract.PosterEntry.COL_POPULARITY+" DESC";
+        }else{
+            sortOrder = MovieContract.PosterEntry.COL_VOTE_COUNT+" DESC";
+        }
+
+        Uri weatherForLocationUri = MovieContract.PosterEntry.buildPosterWithSorting(sortOrder);
+        /*WeatherContract.WeatherEntry.buildWeatherLocationWithStartDate(
+                locationSetting, System.currentTimeMillis());*/
+
+        return new CursorLoader(getActivity(),
+                    weatherForLocationUri,
+                    POSTER_COLUMNS,
+                    null,
+                    null,
+                sortOrder);
+        }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
+        mPosterAdapter.swapCursor(cursor);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> cursorLoader) {
+        mPosterAdapter.swapCursor(null);
     }
 
 
-    public class RetrieveMoviesTask extends AsyncTask<String, Void, Poster[]>{
+    /*public class RetrieveMoviesTask extends AsyncTask<String, Void, Poster[]>{
         private static final String PARAM_SORT = "sort_by";
         private static final String PARAM_API_KEY = "api_key";
         private static final String BASE_URL = "http://api.themoviedb.org/3/discover/movie?";
@@ -290,5 +359,5 @@ public class MainActivityFragment extends Fragment {
 
 
         }
-    }
+    }*/
 }

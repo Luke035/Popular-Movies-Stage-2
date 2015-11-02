@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public class MovieDBHelper extends SQLiteOpenHelper {
 
-    private static final int DB_VERSION = 2;
+    private static final int DB_VERSION = 6;
 
     public static final String DB_NAME = "movie.db";
 
@@ -20,10 +20,13 @@ public class MovieDBHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         final String SQL_CREATE_POSTER_TABLE = "CREATE TABLE "+ MovieContract.PosterEntry.TABLE_NAME+ " ("+
-
                 MovieContract.PosterEntry._ID+" INTEGER PRIMARY KEY AUTOINCREMENT, "+
 
                 MovieContract.PosterEntry.COL_TITLE+" TEXT NOT NULL, "+
+
+                //COL_MOVIE_ID must be unique, in order to use it as a forign key
+                MovieContract.PosterEntry.COL_MOVIE_ID +" INTEGER NOT NULL UNIQUE, "+
+                //MovieContract.PosterEntry.COL_MOVIE_ID+" INTEGER NOT NULL, "+
                 MovieContract.PosterEntry.COL_RELEASE_DATE+" TEXT NOT NULL, "+
                 MovieContract.PosterEntry.COL_DURATION+" INTEGER NOT NULL, "+
                 MovieContract.PosterEntry.COL_DESCRIPTION+" TEXT NOT NULL, "+
@@ -39,6 +42,7 @@ public class MovieDBHelper extends SQLiteOpenHelper {
         final String SQL_CREATE_TRAILER_TABLE = "CREATE TABLE "+MovieContract.TrailerEntry.TABLE_NAME+ "("+
                 MovieContract.TrailerEntry._ID+" INTEGER PRIMARY KEY AUTOINCREMENT, "+
 
+
                 MovieContract.TrailerEntry.COL_NAME+" TEXT NOT NULL, "+
                 MovieContract.TrailerEntry.COL_SITE+" TEXT NOT NULL, "+
                 MovieContract.TrailerEntry.COL_TRAILER_KEY+" TEXT NOT NULL, "+
@@ -47,7 +51,7 @@ public class MovieDBHelper extends SQLiteOpenHelper {
                 MovieContract.TrailerEntry.COL_MOVIE_ID+" INTEGER NOT NULL, "+
 
                 "FOREIGN KEY ("+ MovieContract.TrailerEntry.COL_MOVIE_ID+") REFERENCES "+
-                MovieContract.PosterEntry.TABLE_NAME+" ("+ MovieContract.PosterEntry._ID+")"
+                MovieContract.PosterEntry.TABLE_NAME+" ("+ MovieContract.PosterEntry.COL_MOVIE_ID+")"
 
                 +");";
 

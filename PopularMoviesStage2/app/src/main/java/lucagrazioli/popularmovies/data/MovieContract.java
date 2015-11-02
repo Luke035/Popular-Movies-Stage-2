@@ -30,6 +30,7 @@ public class MovieContract {
         public static final String TABLE_NAME = "poster";
 
         public static final String COL_TITLE = "title";
+        public static final String COL_MOVIE_ID = "movie_id";
         public static final String COL_RELEASE_DATE = "release_date";
         public static final String COL_DURATION = "duration";
         public static final String COL_DESCRIPTION = "description";
