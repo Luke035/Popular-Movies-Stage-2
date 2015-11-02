@@ -1,11 +1,13 @@
 package lucagrazioli.popularmovies.test;
 
 import android.content.ComponentName;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.test.AndroidTestCase;
 
 import lucagrazioli.popularmovies.data.MovieContract;
@@ -77,4 +79,25 @@ public class TestProvider extends AndroidTestCase {
 
         return true;
     }
+
+    public void testInsert() {
+        ContentValues testValues = TestDB.createPosterValues();
+
+        Utils.TestContentObserver tco = Utils.getTestContentObserver();
+        mContext.getContentResolver().registerContentObserver(MovieContract.PosterEntry.CONTENT_URI, true, tco);
+
+        Uri posterUri = mContext.getContentResolver().insert(MovieContract.PosterEntry.CONTENT_URI, testValues);
+
+        //Content observer get called?
+        tco.waitForNotificationOrFail();
+        mContext.getContentResolver().unregisterContentObserver(tco);
+
+        //Parse obtained id from posterUri
+        long row_id = ContentUris.parseId(posterUri);
+
+        assertTrue(row_id != -1);
+
+    }
+
+
 }

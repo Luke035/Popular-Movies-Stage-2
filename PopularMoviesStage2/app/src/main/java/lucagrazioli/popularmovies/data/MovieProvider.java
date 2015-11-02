@@ -4,6 +4,7 @@ import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.support.annotation.Nullable;
@@ -186,16 +187,96 @@ public class MovieProvider extends ContentProvider {
     @Nullable
     @Override
     public Uri insert(Uri uri, ContentValues values) {
-        return null;
+        final SQLiteDatabase db = mMovieDbHelper.getWritableDatabase();
+        final int match = sUriMatcher.match(uri);
+
+        Uri returnUri = null;
+
+        switch(match){
+            case POSTER:{
+                long _id = db.insert(MovieContract.PosterEntry.TABLE_NAME, null, values);
+
+                if(_id > 0){
+                    //Inserted correctly
+                    returnUri = MovieContract.PosterEntry.buildPosterUri(_id);
+                }else{
+                    throw new android.database.SQLException("Failed to insert row into "+uri);
+                }
+            }break;
+            case TRAILER:{
+                long _id = db.insert(MovieContract.TrailerEntry.TABLE_NAME, null, values);
+
+                if(_id > 0){
+                    //Inserted correctly
+                    returnUri = MovieContract.TrailerEntry.buildTrailerUri(_id);
+                }else{
+                    throw new android.database.SQLException("Failed to insert row into "+uri);
+                }
+            }break;
+            default:{
+                throw new UnsupportedOperationException("Unknown uri: " + uri);}
+        }
+
+        getContext().getContentResolver().notifyChange(uri,null);
+        db.close();
+        return returnUri;
     }
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        return 0;
+        final SQLiteDatabase db = mMovieDbHelper.getWritableDatabase();
+        final int match = sUriMatcher.match(uri);
+        // this makes delete all rows return the number of rows deleted
+        if ( null == selection ) selection = "1";
+        int deletedRows = 0;
+
+        switch (match){
+            case POSTER:{
+                deletedRows = db.delete(MovieContract.PosterEntry.TABLE_NAME, selection, selectionArgs);
+            }break;
+
+            case TRAILER:{
+                deletedRows = db.delete(MovieContract.TrailerEntry.TABLE_NAME, selection, selectionArgs);
+            }break;
+
+            default:{
+                throw new UnsupportedOperationException("Unknown uri: " + uri);}
+        }
+
+        if(deletedRows > 0){
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+
+        db.close();
+        return deletedRows;
     }
 
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        return 0;
+        final SQLiteDatabase db = mMovieDbHelper.getWritableDatabase();
+        final int match = sUriMatcher.match(uri);
+        // this makes delete all rows return the number of rows deleted
+        if ( null == selection ) selection = "1";
+        int updatedRows = 0;
+
+        switch (match){
+            case POSTER:{
+                updatedRows = db.update(MovieContract.PosterEntry.TABLE_NAME, values, selection, selectionArgs);
+            }break;
+
+            case TRAILER:{
+                updatedRows = db.update(MovieContract.TrailerEntry.TABLE_NAME, values, selection, selectionArgs);
+            }break;
+
+            default:{
+                throw new UnsupportedOperationException("Unknown uri: " + uri);}
+        }
+
+        if(updatedRows > 0){
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+
+        db.close();
+        return updatedRows;
     }
 }
