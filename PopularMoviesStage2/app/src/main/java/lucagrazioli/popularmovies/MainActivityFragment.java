@@ -40,6 +40,16 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             MovieContract.PosterEntry.COL_VOTE_COUNT
     };
 
+    static final int POSTER_ID_COL = 0;
+    static final int POSTER_TITLE_COL = 1;
+    static final int POSTER_RELESE_DATE_COL = 2;
+    static final int POSTER_DURATION_COL = 3;
+    static final int POSTER_DESCRIPTION_COL = 4;
+    static final int POSTER_IMAGE_URL_COL = 5;
+    static final int POSTER_VOTE_AVERAGE_COL = 6;
+    static final int POSTER_POPULARITY_COL = 7;
+    static final int POSTER_VOTE_COUNT_COL = 8;
+
     public MainActivityFragment() {
     }
 

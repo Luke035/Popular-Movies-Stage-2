@@ -11,8 +11,6 @@ import android.widget.ImageView;
 
 import com.squareup.picasso.Picasso;
 
-import lucagrazioli.popularmovies.data.MovieContract;
-
 
 public class PostersAdapter extends CursorAdapter {
 
@@ -40,8 +38,8 @@ public class PostersAdapter extends CursorAdapter {
         // we'll keep the UI functional with a simple (and slow!) binding.
         ImageView imageView = (ImageView) view.findViewById(R.id.poster_image_view);
 
-        int image_col_index = cursor.getColumnIndex(MovieContract.PosterEntry.COL_IMAGE_URL);
-        String image_url = cursor.getString(image_col_index);
+        //int image_col_index = cursor.getColumnIndex(MovieContract.PosterEntry.COL_IMAGE_URL);
+        String image_url = cursor.getString(MainActivityFragment.POSTER_IMAGE_URL_COL);
 
         Picasso.with(context)
                 .load(BASE_IMAGE_URL+image_url)
