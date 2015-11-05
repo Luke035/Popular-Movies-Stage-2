@@ -192,6 +192,7 @@ public class TestDB extends AndroidTestCase {
 
     }
 
+
     public void testDBQuery(){
         MovieDBHelper dbHelper = new MovieDBHelper(mContext);
         SQLiteDatabase db = dbHelper.getWritableDatabase();

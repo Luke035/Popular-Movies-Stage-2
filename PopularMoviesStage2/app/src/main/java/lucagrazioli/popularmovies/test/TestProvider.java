@@ -9,6 +9,9 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.test.AndroidTestCase;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import lucagrazioli.popularmovies.data.MovieContract;
 import lucagrazioli.popularmovies.data.MovieProvider;
 
@@ -152,6 +155,38 @@ public class TestProvider extends AndroidTestCase {
                 values);
 
         assertEquals(values.length, inserted);
+    }
+
+    public void testIdQuery(){
+        ContentValues [] testValues = TestDB.createMultiplePosterValues();
+        List<Integer> ids = new ArrayList<Integer>();
+
+        Utils.TestContentObserver tco = Utils.getTestContentObserver();
+        mContext.getContentResolver().registerContentObserver(MovieContract.PosterEntry.CONTENT_URI, true, tco);
+
+
+        for(ContentValues value : testValues) {
+            Uri posterUri = mContext.getContentResolver().insert(MovieContract.PosterEntry.CONTENT_URI, value);
+
+            //Content observer get called?
+            tco.waitForNotificationOrFail();
+            mContext.getContentResolver().unregisterContentObserver(tco);
+
+            //Parse obtained id from posterUri
+            long row_id = ContentUris.parseId(posterUri);
+            ids.add(value.getAsInteger(MovieContract.PosterEntry.COL_MOVIE_ID));
+            assertTrue(row_id != -1);
+        }
+
+        Uri id_uri = MovieContract.PosterEntry.buildPosterUri(ids.get(0));
+
+
+        Cursor obtained_cursor = mContext.getContentResolver().query(id_uri,null,null,null,null);
+
+        //assertTrue("Different number of obtained values", obtained_cursor.getCount()==1);
+
+        assertEquals("Wrong record number form URI: "+id_uri,1, obtained_cursor.getCount());
+
     }
 
 

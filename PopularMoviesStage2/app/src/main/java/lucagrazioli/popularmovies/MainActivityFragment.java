@@ -1,5 +1,6 @@
 package lucagrazioli.popularmovies;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
@@ -13,6 +14,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.GridView;
 
 import lucagrazioli.popularmovies.data.MovieContract;
@@ -37,7 +39,8 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             MovieContract.PosterEntry.COL_IMAGE_URL,
             MovieContract.PosterEntry.COL_VOTE_AVERAGE,
             MovieContract.PosterEntry.COL_POPULARITY,
-            MovieContract.PosterEntry.COL_VOTE_COUNT
+            MovieContract.PosterEntry.COL_VOTE_COUNT,
+            MovieContract.PosterEntry.COL_MOVIE_ID
     };
 
     static final int POSTER_ID_COL = 0;
@@ -49,6 +52,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     static final int POSTER_VOTE_AVERAGE_COL = 6;
     static final int POSTER_POPULARITY_COL = 7;
     static final int POSTER_VOTE_COUNT_COL = 8;
+    static final int POSTER_MOVIE_ID_COL = 9;
 
     public MainActivityFragment() {
     }
@@ -87,6 +91,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
         /*postersGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
                 Poster selectedPoster = (Poster) mPosterAdapter.getItem(position);
 
                 Intent intent = new Intent(getActivity(), MovieDetailActivity.class);
@@ -95,6 +100,24 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
                 startActivity(intent);
             }
         });*/
+
+        postersGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Cursor cursor = (Cursor) parent.getItemAtPosition(position);
+
+                if(cursor != null){
+
+                    Intent intent = new Intent(getActivity(), MovieDetailActivity.class)
+                            .setData(MovieContract.PosterEntry.buildPosterUri(cursor.getInt(POSTER_MOVIE_ID_COL)));
+
+                    Log.d("Detail_log", "URI: "+MovieContract.PosterEntry.buildPosterUri(cursor.getInt(POSTER_MOVIE_ID_COL)));
+
+                    startActivity(intent);
+
+                }
+            }
+        });
 
         //SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         //last_sorting_pref = prefs.getString(getString(R.string.pref_sorting_key),getString(R.string.pref_sorting_pop_key));
@@ -135,7 +158,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        Poster [] posters = new Poster[mPosterAdapter.getCount()];
+        /*Poster [] posters = new Poster[mPosterAdapter.getCount()];
 
         if(posters.length>0) {
             for(int i=0; i<posters.length; i++){
@@ -144,7 +167,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             outState.putParcelableArray("posters", posters);
         }
 
-        super.onSaveInstanceState(outState);
+        super.onSaveInstanceState(outState);*/
     }
 
 

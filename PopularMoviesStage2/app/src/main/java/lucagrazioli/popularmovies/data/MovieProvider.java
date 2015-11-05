@@ -20,6 +20,7 @@ public class MovieProvider extends ContentProvider {
     public static final int POSTER = 100;
     public static final int POSTER_WITH_SORTING = 101;
     public static final int POSTER_WITH_SORTING_AND_MIN_VOTES = 102;
+    public static final int POSTER_WITH_ID = 103;
     public static final int TRAILER = 200;
 
     private MovieDBHelper mMovieDbHelper;
@@ -29,7 +30,11 @@ public class MovieProvider extends ContentProvider {
     public static UriMatcher buildUriMatcher(){
 
         final UriMatcher matcher = new UriMatcher(UriMatcher.NO_MATCH);
+        //content://lucagrazioli.popularmovies.app/poster/84
 
+        matcher.addURI(MovieContract.CONTENT_AUTHORITY,
+                MovieContract.PATH_POSTER+"/#",
+                POSTER_WITH_ID);
         matcher.addURI(MovieContract.CONTENT_AUTHORITY,
                 MovieContract.PATH_POSTER+"/*/*",
                 POSTER_WITH_SORTING_AND_MIN_VOTES);
@@ -89,6 +94,9 @@ public class MovieProvider extends ContentProvider {
     private static final String sTrailerSelection = MovieContract.TrailerEntry.TABLE_NAME+
             "."+ MovieContract.TrailerEntry.COL_MOVIE_ID+" = ?";
 
+    private static final String sIDSelection = MovieContract.PosterEntry.TABLE_NAME+
+            "."+ MovieContract.PosterEntry.COL_MOVIE_ID+" = ?";
+
     //No specific selection must be applied
     private Cursor getPosters(
             Uri uri, String [] projection, String sortOrder){
@@ -106,6 +114,32 @@ public class MovieProvider extends ContentProvider {
         );
     }
 
+    private Cursor getPostersWithId(
+            Uri uri, String [] projection, String sortOrder){
+
+        Log.d("Detail_log", "called get poster with id");
+
+        Log.d("Detail_log", "movie_id: "+uri.getLastPathSegment());
+
+        return mMovieDbHelper.getReadableDatabase().query(MovieContract.PosterEntry.TABLE_NAME,
+                projection,
+                MovieContract.PosterEntry.COL_MOVIE_ID+ "= "+uri.getLastPathSegment(),
+                null,
+                null,
+                null,
+                null);
+
+        /*return sPosterQueryBuilder.query(
+                mMovieDbHelper.getReadableDatabase(),
+                projection,
+                sIDSelection,
+                null,
+                null,
+                null,
+                sortOrder
+        );*/
+    }
+
     private Cursor getPostersWithMinVotes(
             Uri uri, String [] projection, String sortOrder){
         int minVotes = MovieContract.PosterEntry.getVoteCount(uri);
@@ -120,6 +154,7 @@ public class MovieProvider extends ContentProvider {
                 sortOrder
         );
     }
+
 
     private Cursor getTrailersFromMovie(
             Uri uri, String[] projection, String sortOrder){
@@ -147,6 +182,10 @@ public class MovieProvider extends ContentProvider {
         switch(match){
             case POSTER:{
                 cursor = getPosters(uri, projection, sortOrder);
+            }break;
+
+            case POSTER_WITH_ID:{
+                cursor = getPostersWithId(uri, projection, sortOrder);
             }break;
 
             case POSTER_WITH_SORTING:{
