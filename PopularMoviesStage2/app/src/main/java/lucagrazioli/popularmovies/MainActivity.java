@@ -1,6 +1,8 @@
 package lucagrazioli.popularmovies;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -8,16 +10,40 @@ import android.view.MenuItem;
 
 public class MainActivity extends AppCompatActivity {
 
+    private String mSortingPreference;
+
+    private static final String MAINFRAGMENT_TAG = "DFTAG";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        mSortingPreference = prefs.getString(getString(R.string.pref_sorting_key),getString(R.string.pref_sorting_pop_key));
+
         setContentView(R.layout.activity_main);
 
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new MainActivityFragment())
+                    .add(R.id.container, new MainActivityFragment(),MAINFRAGMENT_TAG)
                     .commit();
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String sortingOrder_pref = prefs.getString(getString(R.string.pref_sorting_key), getString(R.string.pref_sorting_pop_key));
+        // update the location in our second pane using the fragment manager
+        if (sortingOrder_pref != null && !sortingOrder_pref.equals(mSortingPreference)) {
+            MainActivityFragment ff = (MainActivityFragment)getSupportFragmentManager().findFragmentById(R.id.container);
+            if ( null != ff ) {
+                ff.onPreferenceChanged();
+            }
+        }
+
+        mSortingPreference = sortingOrder_pref;
     }
 
 

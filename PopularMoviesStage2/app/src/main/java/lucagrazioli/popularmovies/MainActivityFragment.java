@@ -57,6 +57,12 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     public MainActivityFragment() {
     }
 
+    // since we read the location when we create the loader, all we need to do is restart things
+    void onPreferenceChanged( ) {
+        updateMovies();
+        getLoaderManager().restartLoader(POSTER_LOADER, null, this);
+    }
+
     private String normalizeSortingOrder(){
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String sorting = prefs.getString(getString(R.string.pref_sorting_key), getString(R.string.pref_sorting_pop_key));
