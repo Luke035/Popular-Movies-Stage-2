@@ -48,48 +48,4 @@ public class PostersAdapter extends CursorAdapter {
         Log.d(LOG_TAG, "Called bind view with "+image_url+" image url");
     }
 
-    /*
-    @Override
-    public int getCount() {
-        return posterList.size();
-    }
-
-    @Override
-    public Object getItem(int position) {
-        return posterList.get(position);
-    }
-
-    @Override
-    public long getItemId(int position) {
-        return 0;
-    }
-
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-
-        if(convertView == null){
-            convertView = LayoutInflater.from(mContext).inflate(R.layout.poster_layout,null);
-        }
-
-        ImageView imageView = (ImageView) convertView.findViewById(R.id.poster_image_view);
-
-        Poster poster = (Poster) getItem(position);
-
-        Picasso.with(mContext)
-                .load(poster.getImage_url())
-                .into(imageView);
-
-        return convertView;
-    }
-
-    public void clear() {
-        this.posterList.clear();
-        notifyDataSetChanged();
-    }
-
-    public void add(Poster p) {
-        Log.v("Adapter","Added poster");
-        this.posterList.add(p);
-
-    }*/
 }

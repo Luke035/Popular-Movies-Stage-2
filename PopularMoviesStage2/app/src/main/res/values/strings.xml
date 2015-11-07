@@ -13,4 +13,6 @@
     <string name="release_year">Release year</string>
     <string name="user_rating">User rating</string>
     <string name="empty_poster_string">Error: no connection</string>
+    <string name="default_duration" translatable="false">120min</string>
+    <string name="mark_as_favourite_text">Mark as favourite</string>
 </resources>
