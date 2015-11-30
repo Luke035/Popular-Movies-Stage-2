@@ -26,6 +26,9 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     private static final int portrait_columns = 2;
     private String last_sorting_pref;
 
+    static final String POSITION_TAG = "position";
+    private int saved_position;
+
     private static final int POSTER_LOADER = 0;
     private static final String LOG_TAG = "Provider";
 
@@ -89,8 +92,20 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putInt(POSITION_TAG, postersGrid.getSelectedItemPosition());
+
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
     public View onCreateView(final LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        if(savedInstanceState != null)
+            saved_position = savedInstanceState.getInt(POSITION_TAG, -1);
+        else
+            saved_position = -1;
 
         Uri posterUri = MovieContract.PosterEntry.buildPosterWithSorting("");
         Cursor cursor = getActivity().getContentResolver().query(
@@ -105,6 +120,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
 
         postersGrid = (GridView) rootView.findViewById(R.id.posters_grid);
         postersGrid.setAdapter(mPosterAdapter);
+
 
         if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
             postersGrid.setNumColumns(landscape_columns);
@@ -196,6 +212,10 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
         mPosterAdapter.swapCursor(cursor);
+
+        if(saved_position != -1){
+            postersGrid.smoothScrollToPosition(saved_position);
+        }
     }
 
     @Override
