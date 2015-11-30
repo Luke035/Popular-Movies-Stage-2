@@ -2,18 +2,20 @@ package lucagrazioli.popularmovies;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MainActivityFragment.Callback{
 
     private String mSortingPreference;
+    private boolean mTwoPane;
 
     private static final String MAINFRAGMENT_TAG = "DFTAG";
-
+    private static final String DETAILFRAGMENT_TAG = "DTTAG";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -23,11 +25,23 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        if (savedInstanceState == null) {
+        if(findViewById(R.id.poster_detail_conntainer)!=null){
+            mTwoPane = true;
+
+            /*if (savedInstanceState == null) {
+                getSupportFragmentManager().beginTransaction()
+                        .add(R.id.poster_detail_conntainer, new MovieDetailActivityFragment())
+                        .commit();
+            }*/
+        }else{
+            mTwoPane = false;
+        }
+
+        /*if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.container, new MainActivityFragment(),MAINFRAGMENT_TAG)
                     .commit();
-        }
+        }*/
     }
 
     @Override
@@ -37,9 +51,16 @@ public class MainActivity extends AppCompatActivity {
         String sortingOrder_pref = prefs.getString(getString(R.string.pref_sorting_key), getString(R.string.pref_sorting_pop_key));
         // update the location in our second pane using the fragment manager
         if (sortingOrder_pref != null && !sortingOrder_pref.equals(mSortingPreference)) {
-            MainActivityFragment ff = (MainActivityFragment)getSupportFragmentManager().findFragmentById(R.id.container);
-            if ( null != ff ) {
-                ff.onPreferenceChanged();
+            MainActivityFragment activityFragment = (MainActivityFragment)getSupportFragmentManager().findFragmentById(R.id.main_poster_fragment);
+            if ( null != activityFragment ) {
+                activityFragment.onPreferenceChanged();
+            }
+
+            MovieDetailActivityFragment movieDetailActivityFragment = (MovieDetailActivityFragment)
+                    getSupportFragmentManager().findFragmentByTag(DETAILFRAGMENT_TAG);
+
+            if(movieDetailActivityFragment != null){
+                movieDetailActivityFragment.onPreferenceChanged();
             }
         }
 
@@ -69,5 +90,27 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onItemSelected(Uri contentUri) {
+        if(mTwoPane){
+
+            Bundle args = new Bundle();
+            args.putParcelable(MovieDetailActivityFragment.DETAIL_URI, contentUri);
+
+            MovieDetailActivityFragment fragment = new MovieDetailActivityFragment();
+            fragment.setArguments(args);
+
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.poster_detail_conntainer, fragment, DETAILFRAGMENT_TAG)
+                    .commit();
+
+        }else{
+            Intent intent = new Intent(this, MovieDetailActivity.class)
+                    .setData(contentUri);
+
+            startActivity(intent);
+        }
     }
 }

@@ -1,6 +1,5 @@
 package lucagrazioli.popularmovies;
 
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.database.Cursor;
@@ -11,7 +10,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,6 +28,18 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
 
     private static final int POSTER_LOADER = 0;
     private static final String LOG_TAG = "Provider";
+
+    /**
+     * A callback interface that all activities containing this fragment must
+     * implement. This mechanism allows activities to be notified of item
+     * selections.
+     */
+    public interface Callback {
+        /**
+         * DetailFragmentCallback for when an item has been selected.
+         */
+        public void onItemSelected(Uri movieUri);
+    }
 
     public static final String [] POSTER_COLUMNS = {
             MovieContract.PosterEntry.TABLE_NAME+"."+ MovieContract.PosterEntry._ID,
@@ -109,13 +119,13 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
                 Cursor cursor = (Cursor) parent.getItemAtPosition(position);
 
                 if (cursor != null) {
-
-                    Intent intent = new Intent(getActivity(), MovieDetailActivity.class)
+                    ((Callback) getActivity()).onItemSelected(MovieContract.PosterEntry.buildPosterUri(cursor.getInt(POSTER_MOVIE_ID_COL)));
+                    /*Intent intent = new Intent(getActivity(), MovieDetailActivity.class)
                             .setData(MovieContract.PosterEntry.buildPosterUri(cursor.getInt(POSTER_MOVIE_ID_COL)));
 
                     Log.d("Detail_log", "URI: " + MovieContract.PosterEntry.buildPosterUri(cursor.getInt(POSTER_MOVIE_ID_COL)));
 
-                    startActivity(intent);
+                    startActivity(intent);*/
 
                 }
             }

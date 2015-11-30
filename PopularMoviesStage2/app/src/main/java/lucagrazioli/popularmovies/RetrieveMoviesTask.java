@@ -16,6 +16,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 import lucagrazioli.popularmovies.data.MovieContract;
@@ -137,6 +139,7 @@ public class RetrieveMoviesTask extends AsyncTask <String, Void, Void> {
 
 
             InputStream inputStream = urlConnection.getInputStream();
+            List<Byte> data = new ArrayList<Byte>();
             StringBuffer buffer = new StringBuffer();
             if (inputStream == null) {
                 // Nothing to do.

@@ -1,8 +1,8 @@
 package lucagrazioli.popularmovies;
 
 
-import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -22,6 +22,9 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
     public static final int DETAIL_LOADER = 0;
     private static final String BASE_IMAGE_URL = "http://image.tmdb.org/t/p/w342";
 
+    public static String DETAIL_URI = "URI";
+    private Uri mUri;
+
     public MovieDetailActivityFragment() {
     }
 
@@ -34,6 +37,13 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            mUri = arguments.getParcelable(DETAIL_URI);
+        }
+
+        Log.d("Two pane mode", "onCreateView fragment");
         View rootView = inflater.inflate(R.layout.fragment_movie_detail, container, false);
 
         return rootView;
@@ -48,14 +58,15 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Intent intent = getActivity().getIntent();
+        /*Intent intent = getActivity().getIntent();
 
         if(intent == null)
-            return null;
+            return null;*/
 
         return new CursorLoader(
                 getActivity(),
-                intent.getData(),
+                mUri,
+                //intent.getData(),
                 MainActivityFragment.POSTER_COLUMNS,
                 null,
                 null,
@@ -90,10 +101,16 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
         Picasso.with(getActivity())
                 .load(BASE_IMAGE_URL+data.getString(MainActivityFragment.POSTER_IMAGE_URL_COL))
                 .into(imageView);
+
+        Log.d("Two pane mode", "Cursor load finished");
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
+
+    }
+
+    public void onPreferenceChanged(){
 
     }
 }

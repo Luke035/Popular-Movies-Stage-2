@@ -36,9 +36,9 @@
         </activity>
 
         <provider
-            android:authorities="lucagrazioli.popularmovies.app"
             android:name=".data.MovieProvider"
-            />
+            android:authorities="lucagrazioli.popularmovies.app" />
+        
     </application>
 
 </manifest>
