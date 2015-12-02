@@ -2,7 +2,6 @@ package lucagrazioli.popularmovies;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 
 public class MovieDetailActivity extends AppCompatActivity {
 
@@ -11,7 +10,7 @@ public class MovieDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movie_detail);
 
-        Log.d("Two pane mode", "OnCreate MovieDetailActivity");
+        getSupportActionBar().setElevation(0.0f);
 
         if (savedInstanceState == null) {
             // Create the detail fragment and add it to the activity

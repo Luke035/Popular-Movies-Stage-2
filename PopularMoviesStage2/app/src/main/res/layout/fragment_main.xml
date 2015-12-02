@@ -7,7 +7,9 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:numColumns="auto_fit"
-        android:id="@+id/posters_grid" />
+        android:id="@+id/posters_grid"
+        android:theme="@style/AppTheme"
+        android:transitionGroup="true" />
         <!-- android:verticalSpacing="@dimen/vertical_poster_spacing" -->
         <!-- android:horizontalSpacing="@dimen/horizontal_poster_spacing" --> />
 </RelativeLayout>

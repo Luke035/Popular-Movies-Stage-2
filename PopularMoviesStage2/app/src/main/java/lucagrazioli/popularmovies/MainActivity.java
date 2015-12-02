@@ -34,6 +34,7 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
                         .commit();
             }*/
         }else{
+            getSupportActionBar().setElevation(0.0f);
             mTwoPane = false;
         }
 
