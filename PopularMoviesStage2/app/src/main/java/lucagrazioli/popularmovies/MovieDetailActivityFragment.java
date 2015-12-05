@@ -1,6 +1,7 @@
 package lucagrazioli.popularmovies;
 
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -13,17 +14,26 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import lucagrazioli.popularmovies.data.MovieContract;
+
 public class MovieDetailActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
 
     public static final int DETAIL_LOADER = 0;
+    public static final int TRAILER_LOADER = 1;
     private static final String BASE_IMAGE_URL = "http://image.tmdb.org/t/p/w342";
+
+    public static final String YOU_TUBE_BASE_URL = "https://www.youtube.com/watch";
+    public static final String YOU_TUBE_KEY = "v";
 
     public static String DETAIL_URI = "URI";
     private Uri mUri;
+
+    private LinearLayout trailerContainer;
 
     public MovieDetailActivityFragment() {
     }
@@ -31,6 +41,7 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         getLoaderManager().initLoader(DETAIL_LOADER, null, this);
+        getLoaderManager().initLoader(TRAILER_LOADER, null, new LoaderTrailerCallbacks());
         super.onActivityCreated(savedInstanceState);
     }
 
@@ -45,6 +56,8 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 
         Log.d("Two pane mode", "onCreateView fragment");
         View rootView = inflater.inflate(R.layout.fragment_movie_detail, container, false);
+
+       trailerContainer = (LinearLayout) rootView.findViewById(R.id.trailer_container);
 
         return rootView;
     }
@@ -112,5 +125,64 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 
     public void onPreferenceChanged(){
 
+    }
+
+    public class LoaderTrailerCallbacks implements LoaderManager.LoaderCallbacks<Cursor>{
+        public final String mTrailerUri = null;
+
+
+        @Override
+        public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+            //First need to construct trailer URI
+
+            String movieID = ""+MovieContract.PosterEntry.getIdFromUri(mUri);
+            String selection = MovieContract.TrailerEntry.COL_MOVIE_ID+" = ?";
+            String [] selectionArgs = {movieID}; //Poster id
+
+            return new CursorLoader(
+                    getActivity(),
+                    MovieContract.TrailerEntry.CONTENT_URI,
+                    null,
+                    selection,
+                    selectionArgs,
+                    null
+            );
+        }
+
+        @Override
+        public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+            if(data.getCount() == 0){
+                View noTrailerLayout = getActivity().getLayoutInflater().inflate(R.layout.no_trailers_layout, null);
+                trailerContainer.addView(noTrailerLayout);
+            }
+
+            while(data.moveToNext()){
+                View trailerLayout = getActivity().getLayoutInflater().inflate(R.layout.trailer_entry_layout, null);
+
+                String trailerName = data.getString(data.getColumnIndex(MovieContract.TrailerEntry.COL_NAME));
+                TextView trailerLabel = (TextView) trailerLayout.findViewById(R.id.trailer_label);
+                trailerLabel.setText(trailerName);
+
+                ImageView trailerIcon = (ImageView) trailerLayout.findViewById(R.id.trailer_icon);
+                final String trailerKey = data.getString(data.getColumnIndex(MovieContract.TrailerEntry.COL_TRAILER_KEY));
+                trailerIcon.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Uri trailerURI = Uri.parse(YOU_TUBE_BASE_URL).buildUpon().appendQueryParameter(YOU_TUBE_KEY, trailerKey).build();
+
+                        Intent intent = new Intent(Intent.ACTION_VIEW, trailerURI);
+                        startActivity(intent);
+                    }
+                });
+
+                trailerContainer.addView(trailerLayout);
+            }
+
+        }
+
+        @Override
+        public void onLoaderReset(Loader<Cursor> loader) {
+
+        }
     }
 }

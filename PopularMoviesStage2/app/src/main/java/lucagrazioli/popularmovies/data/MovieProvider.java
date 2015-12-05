@@ -61,7 +61,15 @@ public class MovieProvider extends ContentProvider {
         sPosterQueryBuilder.setTables(MovieContract.PosterEntry.TABLE_NAME);
     }
 
-    private static final SQLiteQueryBuilder sPosterAndTrailerQueryBuilder;
+    private static final SQLiteQueryBuilder sTrailerQueryBuilder;
+
+    static{
+        sTrailerQueryBuilder = new SQLiteQueryBuilder();
+
+        sTrailerQueryBuilder.setTables(MovieContract.TrailerEntry.TABLE_NAME);
+    }
+
+    /*private static final SQLiteQueryBuilder sPosterAndTrailerQueryBuilder;
 
     static{
         sPosterAndTrailerQueryBuilder = new SQLiteQueryBuilder();
@@ -76,7 +84,7 @@ public class MovieProvider extends ContentProvider {
                         "."+ MovieContract.TrailerEntry.COL_MOVIE_ID+" = "+
                         MovieContract.PosterEntry.TABLE_NAME+"."+ MovieContract.PosterEntry.COL_MOVIE_ID
         );
-    }
+    }*/
 
 
     @Override
@@ -123,7 +131,7 @@ public class MovieProvider extends ContentProvider {
 
         return mMovieDbHelper.getReadableDatabase().query(MovieContract.PosterEntry.TABLE_NAME,
                 projection,
-                MovieContract.PosterEntry.COL_MOVIE_ID+ "= "+uri.getLastPathSegment(),
+                MovieContract.PosterEntry.COL_MOVIE_ID + "= " + uri.getLastPathSegment(),
                 null,
                 null,
                 null,
@@ -156,7 +164,7 @@ public class MovieProvider extends ContentProvider {
     }
 
 
-    private Cursor getTrailersFromMovie(
+    /*private Cursor getTrailersFromMovie(
             Uri uri, String[] projection, String sortOrder){
 
         long id = MovieContract.TrailerEntry.getMovieId(uri);
@@ -166,6 +174,18 @@ public class MovieProvider extends ContentProvider {
                 projection,
                 sTrailerSelection,
                 new String[]{Long.toString(id)},
+                null,
+                null,
+                sortOrder
+        );
+    }*/
+
+    private Cursor getTrailers(Uri uri, String [] projection, String sortOrder, String selection, String [] selectionArgs){
+        return sTrailerQueryBuilder.query(
+          mMovieDbHelper.getReadableDatabase(),
+                projection,
+                selection,
+                selectionArgs,
                 null,
                 null,
                 sortOrder
@@ -197,7 +217,8 @@ public class MovieProvider extends ContentProvider {
             }break;
 
             case TRAILER:{
-                cursor = getTrailersFromMovie(uri,projection,sortOrder);
+                //cursor = getTrailersFromMovie(uri,projection,sortOrder);
+                cursor = getTrailers(uri, projection, sortOrder, selection, selectionArgs);
             }break;
 
             default:new UnsupportedOperationException("Unknown URI: "+uri);

@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public class MovieDBHelper extends SQLiteOpenHelper {
 
-    private static final int DB_VERSION = 6;
+    private static final int DB_VERSION = 9;
 
     public static final String DB_NAME = "movie.db";
 
@@ -49,13 +49,16 @@ public class MovieDBHelper extends SQLiteOpenHelper {
                 MovieContract.TrailerEntry.COL_SIZE+" TEXT NOT NULL, "+
                 MovieContract.TrailerEntry.COL_TYPE+" TEXT NOT NULL, "+
                 MovieContract.TrailerEntry.COL_MOVIE_ID+" INTEGER NOT NULL, "+
+                MovieContract.TrailerEntry.COL_TRAILER_ID+" TEXT NOT NULL UNIQUE"
 
-                "FOREIGN KEY ("+ MovieContract.TrailerEntry.COL_MOVIE_ID+") REFERENCES "+
-                MovieContract.PosterEntry.TABLE_NAME+" ("+ MovieContract.PosterEntry.COL_MOVIE_ID+")"
+
+
+                //"FOREIGN KEY ("+ MovieContract.TrailerEntry.COL_MOVIE_ID+") REFERENCES "+
+                // MovieContract.PosterEntry.TABLE_NAME+" ("+ MovieContract.PosterEntry.COL_MOVIE_ID+")"
 
                 +");";
 
-        db.execSQL(SQL_CREATE_TRAILER_TABLE);
+        db.execSQL( SQL_CREATE_TRAILER_TABLE );
     }
 
     @Override

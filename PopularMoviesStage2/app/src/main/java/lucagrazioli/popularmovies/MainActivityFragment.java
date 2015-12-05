@@ -16,7 +16,11 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import lucagrazioli.popularmovies.data.MovieContract;
+import lucagrazioli.popularmovies.test.RetrieveTrailersTask;
 
 public class MainActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
 
@@ -184,6 +188,33 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
 
         //new RetrieveMoviesTask().execute(sorting);
         new RetrieveMoviesTask(mPosterAdapter, getActivity(), postersGrid, landscape_columns, portrait_columns).execute(sorting);
+
+        //Need to launch retrieve trailer task
+        //Need to do a query first, in order to obtain the list of movies ids
+        String [] columns = {MovieContract.PosterEntry.COL_MOVIE_ID};
+        Cursor moviesIds = getActivity().getContentResolver()
+                .query(MovieContract.PosterEntry.CONTENT_URI,
+                        columns,
+                        null,
+                        null,
+                        null);
+        String movieIdsString [] = getIdsStringArray(moviesIds);
+
+        new RetrieveTrailersTask(getActivity()).execute(movieIdsString);
+
+    }
+
+    private String[] getIdsStringArray(Cursor c){
+        List<String> idsList = new ArrayList<String>();
+        String movieIdsString [] = new String [c.getCount()];
+        while(c.moveToNext()){
+            idsList.add(c.getString(0));
+        }
+        for(int i=0;i<idsList.size();i++){
+            movieIdsString[i] = idsList.remove(i);
+        }
+
+        return movieIdsString;
     }
 
     @Override

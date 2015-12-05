@@ -46,6 +46,10 @@ public class MovieContract {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
 
+        public static Long getIdFromUri(Uri uri){
+            return Long.parseLong(uri.getLastPathSegment());
+        }
+
         //Used appendPath instead of appendQueryParam because there's no sorting order column
         public static Uri buildPosterWithSorting(String sort_order){
             return CONTENT_URI.buildUpon().appendPath(sort_order).build();
@@ -81,6 +85,7 @@ public class MovieContract {
         public static final String COL_TRAILER_KEY = "key"; //The unique trailer's id on the player website
         public static final String COL_SIZE = "size";
         public static final String COL_TYPE = "type";
+        public static final String COL_TRAILER_ID = "id";
 
         //Movie foreign key
         public static final String COL_MOVIE_ID = "movie";
@@ -89,7 +94,7 @@ public class MovieContract {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
 
-        public static Uri buildTrailerUriWithMoviId(long id){
+        public static Uri buildTrailerUriWithMovieId(long id){
             return CONTENT_URI.buildUpon().appendQueryParameter(COL_MOVIE_ID, Long.toString(id))
                     .build();
         }
