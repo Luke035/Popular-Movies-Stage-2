@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 
 import org.json.JSONException;
@@ -34,12 +35,15 @@ public class RetrieveTrailersTask extends AsyncTask<String, Void, Void> {
     private static final String BASE_URL = "http://api.themoviedb.org/3/movie";
     private static final String VIDEOS_PARAM = "videos";
 
+    private SwipeRefreshLayout mSwipeRefreshLayout;
+
     private static final String LOG_TAG = "Trailer task";
 
     private final Context mContext;
 
-    public RetrieveTrailersTask(Context mContext) {
+    public RetrieveTrailersTask(Context mContext, SwipeRefreshLayout mSwipeRefreshLayout) {
         this.mContext = mContext;
+        this.mSwipeRefreshLayout = mSwipeRefreshLayout;
     }
 
     private void extractTrailers(String jsonString, String movieID) throws NullJSONStringException, JSONException {
@@ -168,5 +172,12 @@ public class RetrieveTrailersTask extends AsyncTask<String, Void, Void> {
         }
 
         return null;
+    }
+
+    @Override
+    protected void onPostExecute(Void aVoid) {
+        super.onPostExecute(aVoid);
+
+        mSwipeRefreshLayout.setRefreshing(false);
     }
 }

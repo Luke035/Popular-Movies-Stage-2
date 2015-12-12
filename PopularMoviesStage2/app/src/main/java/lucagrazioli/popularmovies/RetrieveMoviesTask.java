@@ -2,8 +2,10 @@ package lucagrazioli.popularmovies;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.widget.GridView;
 
@@ -21,6 +23,7 @@ import java.util.List;
 import java.util.Vector;
 
 import lucagrazioli.popularmovies.data.MovieContract;
+import lucagrazioli.popularmovies.test.RetrieveTrailersTask;
 
 /**
  * Created by lucagrazioli on 02/11/15.
@@ -41,15 +44,16 @@ public class RetrieveMoviesTask extends AsyncTask <String, Void, Void> {
     private GridView postersGrid;
     private int landscape_columns;
     private int portrait_columns;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
 
-    public RetrieveMoviesTask(PostersAdapter mPosterAdapter, Context mContext, GridView postersGrid, int landscape_columns, int portrait_columns) {
+    public RetrieveMoviesTask(PostersAdapter mPosterAdapter, Context mContext, GridView postersGrid, int landscape_columns, int portrait_columns, SwipeRefreshLayout mSwipeRefreshLayout) {
         this.mPosterAdapter = mPosterAdapter;
         this.mContext = mContext;
         this.postersGrid = postersGrid;
         this.landscape_columns = landscape_columns;
         this.portrait_columns = portrait_columns;
+        this.mSwipeRefreshLayout = mSwipeRefreshLayout;
     }
-
 
     private void extractPosters(String jsonString) throws JSONException, NullJSONStringException {
         try {
@@ -189,4 +193,35 @@ public class RetrieveMoviesTask extends AsyncTask <String, Void, Void> {
         return null;
     }
 
+    @Override
+    protected void onPostExecute(Void aVoid) {
+        super.onPostExecute(aVoid);
+
+        //Need to launch retrieve trailer task
+        //Need to do a query first, in order to obtain the list of movies ids
+        String [] columns = {MovieContract.PosterEntry.COL_MOVIE_ID, MovieContract.PosterEntry.COL_TITLE};
+        Cursor moviesIds = mContext.getContentResolver()
+                .query(MovieContract.PosterEntry.CONTENT_URI,
+                        columns,
+                        null,
+                        null,
+                        null);
+        String movieIdsString [] = getIdsStringArray(moviesIds);
+
+        new RetrieveTrailersTask(mContext, mSwipeRefreshLayout).execute(movieIdsString);
+    }
+
+    private String[] getIdsStringArray(Cursor c){
+        List<String> idsList = new ArrayList<String>();
+        String movieIdsString [] = new String [c.getCount()];
+        while(c.moveToNext()){
+            idsList.add(c.getString(0));
+            Log.d("Trailer bug","Title: "+c.getString(1)+" id: "+c.getString(0));
+        }
+        for(int i=0;i<idsList.size();i++){
+            movieIdsString[i] = idsList.remove(i);
+        }
+
+        return movieIdsString;
+    }
 }

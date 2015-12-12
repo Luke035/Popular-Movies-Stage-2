@@ -4,6 +4,7 @@ import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
@@ -181,6 +182,8 @@ public class MovieProvider extends ContentProvider {
     }*/
 
     private Cursor getTrailers(Uri uri, String [] projection, String sortOrder, String selection, String [] selectionArgs){
+        SQLiteDatabase sqLiteDatabase = mMovieDbHelper.getReadableDatabase();
+
         return sTrailerQueryBuilder.query(
           mMovieDbHelper.getReadableDatabase(),
                 projection,
@@ -292,6 +295,8 @@ public class MovieProvider extends ContentProvider {
         return returnUri;
     }
 
+
+
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
         final SQLiteDatabase db = mMovieDbHelper.getWritableDatabase();
@@ -331,7 +336,15 @@ public class MovieProvider extends ContentProvider {
 
         switch (match){
             case POSTER:{
-                updatedRows = db.update(MovieContract.PosterEntry.TABLE_NAME, values, selection, selectionArgs);
+                try {
+                    updatedRows = db.update(MovieContract.PosterEntry.TABLE_NAME, values, selection, selectionArgs);
+                }catch(SQLiteConstraintException e){
+                    updatedRows = db.updateWithOnConflict(MovieContract.PosterEntry.TABLE_NAME,
+                            values,
+                            null,
+                            null,
+                            SQLiteDatabase.CONFLICT_REPLACE);
+                }
             }break;
 
             case TRAILER:{
@@ -376,9 +389,13 @@ public class MovieProvider extends ContentProvider {
 
                             //id = -1 could be due to a duplicate movie_id_col, update instead insert necessary
                             //in this case the record is already insrted in the db
-                            _id = db.replace(MovieContract.PosterEntry.TABLE_NAME, null, value);
-                            if(_id != -1)
-                                returnCount++;
+                            /*_id = db.updateWithOnConflict(MovieContract.PosterEntry.TABLE_NAME,
+                                    value,
+                                    null,
+                                    null,
+                                    SQLiteDatabase.CONFLICT_IGNORE);*/
+                            //if(_id != -1)
+                                //returnCount++;
                         }
 
                         Log.d(LOG_TAG, "Added id"+_id);
@@ -396,7 +413,16 @@ public class MovieProvider extends ContentProvider {
                 try {
                     returnCount = 0;
                     for (ContentValues value : values) {
-                        long _id = db.insert(MovieContract.TrailerEntry.TABLE_NAME, null, value);
+                        long _id = -1;
+                        try {
+                            _id = db.insert(MovieContract.TrailerEntry.TABLE_NAME, null, value);
+                        }catch(SQLiteConstraintException e){
+                            _id = db.updateWithOnConflict(MovieContract.PosterEntry.TABLE_NAME,
+                                    value,
+                                    null,
+                                    null,
+                                    SQLiteDatabase.CONFLICT_REPLACE);
+                        }
 
                         if (_id != -1)
                             returnCount++;

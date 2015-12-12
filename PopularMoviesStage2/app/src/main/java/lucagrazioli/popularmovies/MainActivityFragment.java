@@ -10,6 +10,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lucagrazioli.popularmovies.data.MovieContract;
-import lucagrazioli.popularmovies.test.RetrieveTrailersTask;
 
 public class MainActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
 
@@ -32,6 +32,8 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
 
     static final String POSITION_TAG = "position";
     private int saved_position;
+
+    public SwipeRefreshLayout mSwipeRefreshLayout;
 
     private static final int POSTER_LOADER = 0;
     private static final String LOG_TAG = "Provider";
@@ -58,7 +60,8 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             MovieContract.PosterEntry.COL_VOTE_AVERAGE,
             MovieContract.PosterEntry.COL_POPULARITY,
             MovieContract.PosterEntry.COL_VOTE_COUNT,
-            MovieContract.PosterEntry.COL_MOVIE_ID
+            MovieContract.PosterEntry.COL_MOVIE_ID,
+            MovieContract.PosterEntry.COL_FAVOURITE
     };
 
     static final int POSTER_ID_COL = 0;
@@ -71,6 +74,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     static final int POSTER_POPULARITY_COL = 7;
     static final int POSTER_VOTE_COUNT_COL = 8;
     static final int POSTER_MOVIE_ID_COL = 9;
+    static final int POSTER_FAVOURITE_COL = 10;
 
     public MainActivityFragment() {
     }
@@ -86,10 +90,15 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
         String sorting = prefs.getString(getString(R.string.pref_sorting_key), getString(R.string.pref_sorting_pop_key));
 
         String sortOrder = "";
+
+
         if(sorting.equals(getString(R.string.pref_sorting_pop_key))){
             sortOrder = MovieContract.PosterEntry.COL_POPULARITY+" DESC";
         }else{
-            sortOrder = MovieContract.PosterEntry.COL_VOTE_COUNT+" DESC";
+            if(sorting.equals(getString(R.string.pref_sorting_vote_key)))
+                sortOrder = MovieContract.PosterEntry.COL_VOTE_COUNT+" DESC";
+            if(sorting.equals(getString(R.string.pref_sorting_favourite_key)))
+                sortOrder = MovieContract.PosterEntry.COL_FAVOURITE+" DESC";
         }
 
         return sortOrder;
@@ -118,11 +127,18 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
 
         //Log.d(LOG_TAG,"Number of elements retrieved: "+cursor.getCount());
 
-        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+        mSwipeRefreshLayout = (SwipeRefreshLayout) inflater.inflate(R.layout.fragment_main, container, false);
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                updateMovies();
+            }
+        });
+
 
         mPosterAdapter = new PostersAdapter(getActivity(), cursor, 0);
 
-        postersGrid = (GridView) rootView.findViewById(R.id.posters_grid);
+        postersGrid = (GridView) mSwipeRefreshLayout.findViewById(R.id.posters_grid);
         postersGrid.setAdapter(mPosterAdapter);
 
 
@@ -151,7 +167,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             }
         });
 
-        return rootView;
+        return mSwipeRefreshLayout;
     }
 
     @Override
@@ -172,8 +188,8 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
         update (example rotated screen).
          */
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        String sorting = prefs.getString(getString(R.string.pref_sorting_key),getString(R.string.pref_sorting_pop_key));
+        //SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String sorting = normalizeSortingOrder();
 
 
         if(!sorting.equals(last_sorting_pref)) {
@@ -183,15 +199,16 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     }
 
     private void updateMovies(){
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        String sorting = prefs.getString(getString(R.string.pref_sorting_key),getString(R.string.pref_sorting_pop_key));
+        mSwipeRefreshLayout.setRefreshing(true);
+        //SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String sorting = normalizeSortingOrder();
 
         //new RetrieveMoviesTask().execute(sorting);
-        new RetrieveMoviesTask(mPosterAdapter, getActivity(), postersGrid, landscape_columns, portrait_columns).execute(sorting);
+        new RetrieveMoviesTask(mPosterAdapter, getActivity(), postersGrid, landscape_columns, portrait_columns, mSwipeRefreshLayout).execute(sorting);
 
         //Need to launch retrieve trailer task
         //Need to do a query first, in order to obtain the list of movies ids
-        String [] columns = {MovieContract.PosterEntry.COL_MOVIE_ID};
+        /*String [] columns = {MovieContract.PosterEntry.COL_MOVIE_ID};
         Cursor moviesIds = getActivity().getContentResolver()
                 .query(MovieContract.PosterEntry.CONTENT_URI,
                         columns,
@@ -200,7 +217,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
                         null);
         String movieIdsString [] = getIdsStringArray(moviesIds);
 
-        new RetrieveTrailersTask(getActivity()).execute(movieIdsString);
+        new RetrieveTrailersTask(getActivity()).execute(movieIdsString);*/
 
     }
 
@@ -220,15 +237,15 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        String sorting = prefs.getString(getString(R.string.pref_sorting_key), getString(R.string.pref_sorting_pop_key));
+        //SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        //String sorting = prefs.getString(getString(R.string.pref_sorting_key), getString(R.string.pref_sorting_pop_key));
 
-        String sortOrder = "";
-        if(sorting.equals(getString(R.string.pref_sorting_pop_key))){
+        String sortOrder = normalizeSortingOrder();
+        /*if(sorting.equals(getString(R.string.pref_sorting_pop_key))){
             sortOrder = MovieContract.PosterEntry.COL_POPULARITY+" DESC";
         }else{
             sortOrder = MovieContract.PosterEntry.COL_VOTE_COUNT+" DESC";
-        }
+        }*/
 
         Uri posterWithSortingUri = MovieContract.PosterEntry.buildPosterWithSorting(sortOrder);
 
