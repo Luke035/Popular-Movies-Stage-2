@@ -200,8 +200,11 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
 
     private void updateMovies(){
         mSwipeRefreshLayout.setRefreshing(true);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String sorting = prefs.getString(getString(R.string.pref_sorting_key), getString(R.string.pref_sorting_pop_key));
+
         //SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        String sorting = normalizeSortingOrder();
+        //String sorting = normalizeSortingOrder();
 
         //new RetrieveMoviesTask().execute(sorting);
         new RetrieveMoviesTask(mPosterAdapter, getActivity(), postersGrid, landscape_columns, portrait_columns, mSwipeRefreshLayout).execute(sorting);

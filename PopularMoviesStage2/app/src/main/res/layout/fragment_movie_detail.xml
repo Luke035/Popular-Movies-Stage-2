@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<ScrollView xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/scroll"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -90,6 +90,16 @@
             android:layout_marginBottom="5dp">
 
         </LinearLayout>
-
+        <android.support.design.widget.FloatingActionButton
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_gravity="bottom|right"
+            android:layout_margin="16dp"
+            android:clickable="true"
+            android:src="@drawable/ic_description_black_24dp"
+            style="@style/AppTheme"
+            app:elevation="10dp"
+            android:id="@+id/review_button" />
     </LinearLayout>
+
 </ScrollView>

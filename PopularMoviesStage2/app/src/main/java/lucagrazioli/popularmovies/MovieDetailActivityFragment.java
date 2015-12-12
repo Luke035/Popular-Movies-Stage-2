@@ -5,18 +5,23 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -128,14 +133,14 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
         markAsFavourite.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Cursor c  = getActivity().getContentResolver().query(mUri,
+                Cursor c = getActivity().getContentResolver().query(mUri,
                         null,
                         null,
                         null,
                         null);
 
 
-                if(c.moveToNext()) {
+                if (c.moveToNext()) {
                     ContentValues updatedValue = new ContentValues();
                     updatedValue.put(MovieContract.PosterEntry.COL_TITLE, c.getString(c.getColumnIndex(MovieContract.PosterEntry.COL_TITLE)));
                     updatedValue.put(MovieContract.PosterEntry.COL_DESCRIPTION, c.getString(c.getColumnIndex(MovieContract.PosterEntry.COL_DESCRIPTION)));
@@ -160,7 +165,7 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
                             updatedValue
                     );
 
-                    if(uri != null){
+                    if (uri != null) {
                         Toast toast = Toast.makeText(getActivity(), getString(R.string.marked_as_favourite), Toast.LENGTH_SHORT);
                         toast.show();
                         markAsFavourite.setText(getString(R.string.is_favourite));
@@ -169,7 +174,50 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
             }
         });
 
+        FloatingActionButton reviewsButton = (FloatingActionButton) getView().findViewById(R.id.review_button);
+        reviewsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                long id = MovieContract.PosterEntry.getIdFromUri(mUri);
+
+                View child = generatePopWindow(v);
+
+                new RetrieveReviewsTask(getActivity(), child, id).execute();
+
+            }
+        });
+
         Log.d("Two pane mode", "Cursor load finished");
+    }
+
+    public View generatePopWindow(View anchor){
+        View child = getActivity().getLayoutInflater().inflate(R.layout.popover_master_view, null);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            child.setBackground(getResources().getDrawable(R.drawable.popover_background));
+        }
+
+        final PopupWindow popWindow = new PopupWindow(child,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                true );
+
+        popWindow.setFocusable(true);
+
+        popWindow.setOutsideTouchable(true);
+
+        popWindow.setBackgroundDrawable(getResources().getDrawable(R.drawable.popover_background));
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            popWindow.setElevation(10f);
+        }
+
+        popWindow.setAnimationStyle(R.style.AnimationPopup);
+
+
+        //popWindow.showAtLocation(v, Gravity.TOP, 0, Math.round(y_loc));
+        popWindow.showAtLocation(anchor, Gravity.TOP, 0, 0);
+
+        return child.findViewById(R.id.reviews_container);
     }
 
     @Override
@@ -205,11 +253,16 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
 
         @Override
         public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+            if(trailerContainer.getChildCount() > 0){
+                //No need to re-add the trailers
+
+                return;
+            }
+
             if(data.getCount() == 0){
                 View noTrailerLayout = getActivity().getLayoutInflater().inflate(R.layout.no_trailers_layout, null);
                 trailerContainer.addView(noTrailerLayout);
             }else {
-
                 while (data.moveToNext()) {
                     View trailerLayout = getActivity().getLayoutInflater().inflate(R.layout.trailer_entry_layout, null);
 
@@ -232,6 +285,8 @@ public class MovieDetailActivityFragment extends Fragment implements LoaderManag
                     trailerContainer.addView(trailerLayout);
                 }
             }
+
+
         }
 
         @Override
